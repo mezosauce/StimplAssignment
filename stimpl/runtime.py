@@ -238,12 +238,31 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
             return (result, left_type, new_state)
 
         case Not(expr=expr):
-            """ TODO: Implement. """
-            pass
+            """ TODO: Implement. 
+            The Not case evaluates the logical negation of a boolean expression
+            """
+            value, value_type, new_state = evaluate(expr, state)
+    
+            if value_type != Boolean():
+                raise InterpTypeError("Cannot perform logical not on non-boolean operand.")
+            
+            result = not value
+            return (result, Boolean(), new_state)
 
         case If(condition=condition, true=true, false=false):
-            """ TODO: Implement. """
-            pass
+            """ TODO: Implement. 
+            The If case evaluates a conditional expression,
+             executing one branch if the condition is true and the other if it is false.
+            """
+            condition_value, condition_type, new_state = evaluate(condition, state)
+    
+            if condition_type != Boolean():
+                raise InterpTypeError("Condition in If expression must be a boolean.")
+            
+            if condition_value:
+                return evaluate(true, new_state)
+            else:
+                return evaluate(false, new_state)
 
         case Lt(left=left, right=right):
             left_value, left_type, new_state = evaluate(left, state)

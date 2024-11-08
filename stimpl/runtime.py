@@ -23,8 +23,9 @@ class State(object):
         return State(variable_name, variable_value, variable_type, self)
 
     def get_value(self, variable_name) -> Any:
-        #""" TODO: Implement. 
-        # """
+        """ TODO: Implement. 
+         The get_value method traverses the tuple to find the most recent state of a specified variable.
+         """
         current_state = self
         while not isinstance(current_state, EmptyState):
             if current_state.variable_name == variable_name:
@@ -86,8 +87,16 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
             return (printable_value, printable_type, new_state)
 
         case Sequence(exprs=exprs) | Program(exprs=exprs):
-            """ TODO: Implement. """
-            pass
+            """ TODO: Implement. 
+            The Sequence and Program cases involve evaluating a list of expressions in order. 
+            The state is updated as each expression is evaluated.
+            """
+            current_state = state
+            final_value = None
+            final_type = Unit()
+            for expr in exprs:
+                final_value, final_type, current_state = evaluate(expr, current_state)
+            return (final_value, final_type, current_state)
 
         case Variable(variable_name=variable_name):
             value = state.get_value(variable_name)
@@ -131,16 +140,67 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
             return (result, left_type, new_state)
 
         case Subtract(left=left, right=right):
-            """ TODO: Implement. """
-            pass
+            """ TODO: Implement. 
+            The Subtract case is similar to Add, but it performs subtraction.
+            """
+            result = 0
+            left_result, left_type, new_state = evaluate(left, state)
+            right_result, right_type, new_state = evaluate(right, new_state)
+
+            if left_type != right_type:
+                raise InterpTypeError(f"""Mismatched types for Subtract:
+            Cannot subtract {left_type} from {right_type}""")
+
+            match left_type:
+                case Integer() | FloatingPoint():
+                    result = left_result - right_result
+                case _:
+                    raise InterpTypeError(f"""Cannot subtract {left_type}s""")
+
+            return (result, left_type, new_state)
 
         case Multiply(left=left, right=right):
-            """ TODO: Implement. """
-            pass
+            """ TODO: Implement. 
+            Same case as Add but Multiply 
+            """
+            result = 0
+            left_result, left_type, new_state = evaluate(left, state)
+            right_result, right_type, new_state = evaluate(right, new_state)
+
+            if left_type != right_type:
+                raise InterpTypeError(f"""Mismatched types for Multiply:
+            Cannot multiply {left_type} with {right_type}""")
+
+            match left_type:
+                case Integer() | FloatingPoint():
+                    result = left_result * right_result
+                case _:
+                    raise InterpTypeError(f"""Cannot multiply {left_type}s""")
+
+            return (result, left_type, new_state)
 
         case Divide(left=left, right=right):
-            """ TODO: Implement. """
-            pass
+            """ TODO: Implement. 
+            Same case as Add but Divide needs to check if it is dividing by zero
+            """
+            left_result, left_type, new_state = evaluate(left, state)
+            right_result, right_type, new_state = evaluate(right, new_state)
+
+            if left_type != right_type:
+                raise InterpTypeError(f"""Mismatched types for Divide:
+            Cannot divide {left_type} by {right_type}""")
+
+            if right_result == 0:
+                raise InterpTypeError("Division by zero is not allowed")
+
+            result = 0
+            match left_type:
+                case Integer() | FloatingPoint():
+                    result = left_result / right_result
+                case _:
+                    raise InterpTypeError(f"""Cannot divide {left_type}s""")
+
+            return (result, left_type, new_state)
 
         case And(left=left, right=right):
             left_value, left_type, new_state = evaluate(left, state)
@@ -159,8 +219,23 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
             return (result, left_type, new_state)
 
         case Or(left=left, right=right):
-            """ TODO: Implement. """
-            pass
+            """ TODO: Implement. 
+            The OR logic falls the same as AND but with the right accomidations
+            """
+            left_value, left_type, new_state = evaluate(left, state)
+            right_value, right_type, new_state = evaluate(right, new_state)
+
+            if left_type != right_type:
+                raise InterpTypeError(f"""Mismatched types for Or:
+            Cannot evaluate {left_type} or {right_type}""")
+            match left_type:
+                case Boolean():
+                    result = left_value or right_value
+                case _:
+                    raise InterpTypeError(
+                        "Cannot perform logical or on non-boolean operands.")
+
+            return (result, left_type, new_state)
 
         case Not(expr=expr):
             """ TODO: Implement. """

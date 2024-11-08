@@ -341,9 +341,32 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
 
         case Gte(left=left, right=right):
             """ TODO: Implement. 
-            Greater than Equal
+            Greater than Equal: should be same as Gt but with the accomidations on the right side as well
             """
-            pass
+            
+            left_value, left_type, new_state = evaluate(left, state)
+            right_value, right_type, new_state = evaluate(right, new_state)
+
+            result = None
+
+            if left_type != right_type:
+                raise InterpTypeError(f"""Mismatched types for Lt:
+            Cannot compare {left_type} and {right_type}""")
+
+            match left_type:
+                case Integer() | Boolean() | String() | FloatingPoint():
+                    result = left_value >= right_value
+                case Unit():
+                    match right_type:
+                        case Unit():
+                            result = True
+                        case _:
+                            result = False
+                case _:
+                    raise InterpTypeError(
+                        f"Cannot perform >= on {left_type} type.")
+
+            return (result, Boolean(), new_state)
 
         case Eq(left=left, right=right):
             """ TODO: Implement. 

@@ -433,7 +433,7 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
                     raise InterpTypeError("Condition in While expression must be a boolean.")
                 
                 if not condition_value:
-                    return (None, Unit(), new_state)
+                    return (False, Unit(), new_state)
                 
                 _, _, new_state = evaluate(body, new_state)
                 

@@ -191,11 +191,13 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
             Cannot divide {left_type} by {right_type}""")
 
             if right_result == 0:
-                raise InterpTypeError("Division by zero is not allowed")
+                raise InterpMathError("Division by zero is not allowed")
 
             result = 0
             match left_type:
-                case Integer() | FloatingPoint():
+                case Integer():
+                    result = left_result // right_result
+                case FloatingPoint():
                     result = left_result / right_result
                 case _:
                     raise InterpTypeError(f"""Cannot divide {left_type}s""")
@@ -379,7 +381,7 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
             result = None
 
             if left_type != right_type:
-                raise InterpTypeError(f"""Mismatched types for Lt:
+                raise InterpTypeError(f"""Mismatched types for Eq:
             Cannot compare {left_type} and {right_type}""")
 
             match left_type:
@@ -405,21 +407,17 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
             left_value, left_type, new_state = evaluate(left, state)
             right_value, right_type, new_state = evaluate(right, new_state)
 
-            result = None
-
             if left_type != right_type:
-                raise InterpTypeError(f"""Mismatched types for Lt:
-            Cannot compare {left_type} and {right_type}""")
+                raise InterpTypeError(f"""Mismatched types for Ne:
+                Cannot compare {left_type} and {right_type}""")
+
+            result = None
 
             match left_type:
                 case Integer() | Boolean() | String() | FloatingPoint():
                     result = left_value != right_value
                 case Unit():
-                    match right_type:
-                        case Unit():
-                            result = True
-                        case _:
-                            result = False
+                    result = False  # Both are Unit, hence they are not different.
                 case _:
                     raise InterpTypeError(
                         f"Cannot perform != on {left_type} type.")
@@ -428,11 +426,18 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
 
         case While(condition=condition, body=body):
             """ TODO: Implement. """
-            pass
-
-        case _:
-            raise InterpSyntaxError("Unhandled!")
-    pass
+            while True:
+                condition_value, condition_type, new_state = evaluate(condition, state)
+                
+                if condition_type != Boolean():
+                    raise InterpTypeError("Condition in While expression must be a boolean.")
+                
+                if not condition_value:
+                    return (None, Unit(), new_state)
+                
+                _, _, new_state = evaluate(body, new_state)
+                
+                state = new_state
 
 
 def run_stimpl(program, debug=False):

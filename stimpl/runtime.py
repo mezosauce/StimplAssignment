@@ -161,7 +161,7 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
 
         case Multiply(left=left, right=right):
             """ TODO: Implement. 
-            Same case as Add but Multiply 
+            Same case as Add but Multiply no special cases
             """
             result = 0
             left_result, left_type, new_state = evaluate(left, state)
@@ -181,7 +181,7 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
 
         case Divide(left=left, right=right):
             """ TODO: Implement. 
-            Same case as Add but Divide needs to check if it is dividing by zero
+            Same case as Add but Divide needs to check if it is dividing by zero as well.
             """
             left_result, left_type, new_state = evaluate(left, state)
             right_result, right_type, new_state = evaluate(right, new_state)
@@ -241,7 +241,8 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
 
         case Not(expr=expr):
             """ TODO: Implement. 
-            The Not case evaluates the logical negation of a boolean expression
+            The Not case evaluates the logical negation of a boolean expression as long as it 
+            validates its type as a boolean
             """
             value, value_type, new_state = evaluate(expr, state)
     
@@ -254,7 +255,7 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
         case If(condition=condition, true=true, false=false):
             """ TODO: Implement. 
             The If case evaluates a conditional expression,
-             executing one branch if the condition is true and the other if it is false.
+             executing one branch if the condition is a boolean 
             """
             condition_value, condition_type, new_state = evaluate(condition, state)
     
@@ -289,7 +290,8 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
 
         case Lte(left=left, right=right):
             """ TODO: Implement. 
-            Same thing as the Lessthan function but I need to check if the right side is also a Unit()
+            Same thing as the Lessthan or equal to function but I need to 
+            check if the right side is also a Unit() for the accomidation of 
             """
             
             left_value, left_type, new_state = evaluate(left, state)
@@ -298,7 +300,7 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
             result = None
 
             if left_type != right_type:
-                raise InterpTypeError(f"""Mismatched types for Lt:
+                raise InterpTypeError(f"""Mismatched types for Lte:
             Cannot compare {left_type} and {right_type}""")
 
             match left_type:
@@ -327,7 +329,7 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
             result = None
 
             if left_type != right_type:
-                raise InterpTypeError(f"""Mismatched types for Lt:
+                raise InterpTypeError(f"""Mismatched types for Gt:
             Cannot compare {left_type} and {right_type}""")
 
             match left_type:
@@ -352,7 +354,7 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
             result = None
 
             if left_type != right_type:
-                raise InterpTypeError(f"""Mismatched types for Lt:
+                raise InterpTypeError(f"""Mismatched types for Gte:
             Cannot compare {left_type} and {right_type}""")
 
             match left_type:
@@ -372,7 +374,8 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
 
         case Eq(left=left, right=right):
             """ TODO: Implement. 
-            Equal
+            Equal: needs to check if right and left side types are units and if 
+            they are then the result should be true
             """
             
             left_value, left_type, new_state = evaluate(left, state)
@@ -401,7 +404,7 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
 
         case Ne(left=left, right=right):
             """ TODO: Implement. 
-            Not Equal
+            Not Equal: same gist as Equal but negated instead
             """
             
             left_value, left_type, new_state = evaluate(left, state)
@@ -425,7 +428,10 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
             return (result, Boolean(), new_state)
 
         case While(condition=condition, body=body):
-            """ TODO: Implement. """
+            """ TODO: Implement. 
+            The basic idea behind the While function is that it continuously checks the condition, and if the condition is True,
+              it runs the body of the loop again and again. Once the condition evaluates to False
+            """
             while True:
                 condition_value, condition_type, new_state = evaluate(condition, state)
                 
